@@ -5,6 +5,9 @@
  * a Javascript-driven code editor. Templates can have default subjects.
  *
  * @author  Uncle Cheese <unclecheese@leftandmain.com>
+ * @author Mark Christian Lopez <xmarkclx@gmail.com>
+ * 	- Added quick output view
+ * 	- Made it translatable via Fluent
  * @package  silverstripe-permamail
  */
 class PermamailTemplate extends DataObject {
@@ -83,6 +86,18 @@ class PermamailTemplate extends DataObject {
 				->setRows(30)
 				->setColumns(100)
 				->setFieldHolderTemplate('PermamailTemplateEditor')
+		);
+		
+		$vars = array();
+		foreach($this->TestVariables() as $v) {
+			$vars[$v->Variable] = $v->getVariableValue();
+		}
+		$content = SSViewer::fromString($this->Content);
+		$content = $content->process(new ArrayList($vars));
+		$fields->addFieldToTab('Root.Main',
+			new LabelField('ContentOutput', '<strong>Template Output</strong><br>
+				<div style="background-color:white; padding: 1em; border: 3px solid grey;">'.$content.'</div><br>'),
+			'Content'
 		);
 
 		$fields->addFieldsToTab("Root.Tests", array (

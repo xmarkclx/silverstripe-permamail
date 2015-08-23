@@ -5,6 +5,8 @@
  * as well as {@link PermamailTemplate} objects
  *
  * @author Uncle Cheese <unclecheese@leftandmain.com>
+ * @author Mark Christian Lopez <xmarkclx@gmail.com>
+ * 	- Added CSV import
  * @package  silverstripe-permamail
  */
 class PermamailAdmin extends ModelAdmin {
@@ -18,6 +20,9 @@ class PermamailAdmin extends ModelAdmin {
 		'PermamailTemplate' => array (
 			'title' => 'Email Templates'
 		)
+	);
+	private static $model_importers = array(
+		'PermamailTemplate' => 'CsvBulkLoader',
 	);
 
 	private static $url_segment = 'email';

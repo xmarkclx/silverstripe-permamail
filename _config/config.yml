@@ -3,3 +3,7 @@ Name: permamail
 ---
 Permamail:
   test_mode: false
+
+PermamailTemplate:
+  extensions:
+    - FluentExtension

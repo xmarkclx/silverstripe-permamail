@@ -1,5 +1,10 @@
 # SilverStripe Permamail
 ======================
+This fork adds the following features:
+ 	- Added quick output view
+ 	- Made it translatable via Fluent
+ 	- Added CSV import for mail templates, useful for updating multiple sites with templates
+
 This module adds several enhancements to the core `Email` class in SilverStripe:
 * Persisting sent emails in the database
 * Allowing "resend" of emails

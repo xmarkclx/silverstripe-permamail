@@ -8,6 +8,8 @@
  * @author Mark Christian Lopez <xmarkclx@gmail.com>
  * 	- Added quick output view
  * 	- Made it translatable via Fluent
+ *  - Fallback to template file if Content is blank.
+ * 	- Allowed non-lowercase identifiers so that you can type in template file fallback.
  * @package  silverstripe-permamail
  */
 class PermamailTemplate extends DataObject {
@@ -18,6 +20,11 @@ class PermamailTemplate extends DataObject {
 		'From' => 'Varchar',
 		'Content' => 'HTMLText',
 		'TestEmailAddress' => 'Varchar'
+	);
+
+	private static $translate = array(
+		'Subject',
+		'Content'
 	);
 
 	private static $has_many = array (
@@ -34,7 +41,7 @@ class PermamailTemplate extends DataObject {
 	);
 
 	private static $defaults = array (
-		'Content' => "<html>\n<body>\n\n</body>\n</html>"
+//		'Content' => "<html>\n<body>\n\n</body>\n</html>"
 	);
 
 	private static $singular_name = 'Email template';
@@ -64,6 +71,17 @@ class PermamailTemplate extends DataObject {
 		return $f;
 	}
 
+	public function getContent(){
+		if($this->getField('Content') == ''){
+			$templatePath = SSViewer::getTemplateFileByType($this->Identifier, 'main');
+			if(file_exists($templatePath)) {
+				$contents = file_get_contents($templatePath);
+				return $contents;
+			}
+		}
+		return $this->getField('Content');
+	}
+	
 	/**
 	 * Gets the {@link FieldList} for editing the record
 	 * @return FieldList
@@ -90,10 +108,14 @@ class PermamailTemplate extends DataObject {
 		
 		$vars = array();
 		foreach($this->TestVariables() as $v) {
-			$vars[$v->Variable] = $v->getVariableValue();
+			$value = $v->getVariableValue();
+			$vars[$v->Variable] = $value ? $value : '';
 		}
+		
+		// Populate the Content field with default Content from file template
 		$content = SSViewer::fromString($this->Content);
-		$content = $content->process(new ArrayList($vars));
+		$content = $content->process(new ViewableData(), $vars);
+		
 		$fields->addFieldToTab('Root.Main',
 			new LabelField('ContentOutput', '<strong>Template Output</strong><br>
 				<div style="background-color:white; padding: 1em; border: 3px solid grey;">'.$content.'</div><br>'),
@@ -131,7 +153,8 @@ class PermamailTemplate extends DataObject {
 	 */
 	public function onBeforeWrite() {
 		parent::onBeforeWrite();
-		$slug = singleton('SiteTree')->generateURLSegment($this->Identifier);
+//		$slug = singleton('SiteTree')->generateURLSegment($this->Identifier);
+		$slug = $this->Identifier;
 		$original_slug = $slug;
 		$i = 0;
 		while($t = PermamailTemplate::get()

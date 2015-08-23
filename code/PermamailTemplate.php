@@ -189,7 +189,7 @@ class PermamailTemplate extends DataObject {
 				$v = PermamailTemplateVariable::create(array(
 					'Variable' => $var,
 					'PermamailTemplateID' => $this->ID,
-					'List' => $isList
+					'List' => false // Buggy
 				));
 				$v->write();
 			}

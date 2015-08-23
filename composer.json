@@ -1,5 +1,5 @@
 {
-    "name": "unclecheese/silverstripe-permamail",
+    "name": "xmarkclx/silverstripe-permamail",
     "description": "Adds database storage of emails and CMS definition of email templates.",
     "type": "silverstripe-module",
     "keywords": ["silverstripe", "email"],
@@ -7,7 +7,9 @@
     "authors": [
     {
         "name": "Uncle Cheese",
-        "email": "unclecheese@leftandmain.com"
+        "email": "unclecheese@leftandmain.com",
+        "name": "Mark Christian Lopez",
+        "email": "xmarkclx@gmail.com"
     }],
     "require": {
         "silverstripe/framework": "~3.1",

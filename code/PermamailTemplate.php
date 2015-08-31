@@ -6,21 +6,29 @@
  *
  * @author  Uncle Cheese <unclecheese@leftandmain.com>
  * @author Mark Christian Lopez <xmarkclx@gmail.com>
+ *  - Template inheritance
  * 	- Added quick output view
  * 	- Made it translatable via Fluent
  *  - Fallback to template file if Content is blank.
  * 	- Allowed non-lowercase identifiers so that you can type in template file fallback.
  * @package  silverstripe-permamail
+ * 
+ * @property Boolean IsAbstractTemplate
+ * @method PermamailTemplate MainTemplate
  */
 class PermamailTemplate extends DataObject {
-
 	private static $db = array (
+		'IsAbstractTemplate' => 'Boolean',
 		'Identifier' => 'Varchar',
 		'Subject' => 'Varchar(255)',
 		'From' => 'Varchar',
 		'Content' => 'HTMLText',
-		'TestEmailAddress' => 'Varchar'
+		'TestEmailAddress' => 'Varchar',
 	);
+    
+    private static $has_one = array (
+        'MainTemplate' => 'PermamailTemplate'
+    );
 
 	private static $translate = array(
 		'Subject',
@@ -98,6 +106,12 @@ class PermamailTemplate extends DataObject {
 		$fields->addFieldToTab('Root.Main', TextField::create('Identifier','Template name (no spaces, alphanumeric characters only)'));
 		$fields->addFieldToTab('Root.Main', TextField::create('Subject','Default subject (optional)'));
 		$fields->addFieldToTab('Root.Main', TextField::create('From','Default "from" address (optional)'));
+		$fields->addFieldToTab('Root.Main', CheckboxField::create('IsAbstractTemplate', 'Is this an abstract template?<br>Abstract templates can be inherited by other templates. Useful for similar layout templates.'));
+        $fields->addFieldToTab('Root.Main', DropdownField::create(
+            'ParentTemplate', 
+            'Parent Abstract template. Useful for similar layout templates.', 
+            PermamailTemplate::get()->filter('IsAbstractTemplate', true)
+        ));
 		$fields->addFieldToTab('Root.Main',
 			TextareaField::create('Content', 'Template content')
 				->addExtraClass('ace')
@@ -113,8 +127,16 @@ class PermamailTemplate extends DataObject {
 		}
 		
 		// Populate the Content field with default Content from file template
-		$content = SSViewer::fromString($this->Content);
-		$content = $content->process(new ViewableData(), $vars);
+        try {
+            $content = SSViewer::fromString($this->getContent());
+            $content = $content->process(new ViewableData(), $vars);
+            if ($this->IsAbstractTemplate && $this->MainTemplate()->exists()) {
+                $contentMain = SSViewer::fromString($this->MainTemplate()->getContent());
+                $content = $contentMain->process(new ViewableData(), array('Content' => $content));
+            }
+        }catch(SSTemplateParseException $e){
+            $content = $e->getMessage();
+        }
 		
 		$fields->addFieldToTab('Root.Main',
 			new LabelField('ContentOutput', '<strong>Template Output</strong><br>
